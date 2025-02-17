@@ -391,7 +391,7 @@ function HalfCourt() {
             onTouchMove={TouchMove}
             onMouseUp={EndMove}
             onTouchEnd={EndMove}
-            className={`bg-[url(${import.meta.env.BASE_URL}half-court.png)] bg-contain bg-no-repeat`}
+            className="bg-[url(/half-court.png)] bg-contain bg-no-repeat"
           />
         </div>
       </div>

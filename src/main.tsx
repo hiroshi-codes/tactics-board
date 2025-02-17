@@ -12,8 +12,8 @@ createRoot(document.getElementById("root")!).render(
     <SnackbarProvider autoHideDuration={1000} anchorOrigin={{ horizontal: "right", vertical: "bottom" }} />
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<App />} />
-        <Route path="/half-court" element={<HalfCourt />} />
+        <Route path={import.meta.env.BASE_URL} element={<App />} />
+        <Route path={`${import.meta.env.BASE_URL}half-court`} element={<HalfCourt />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>
