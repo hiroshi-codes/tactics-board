@@ -347,7 +347,7 @@ function HalfCourt() {
               </button>
               <button
                 type="button"
-                className="ml-6 text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-full text-sm p-1 text-center inline-flex items-center me-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
+                className="ml-4 text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-full text-sm p-1 text-center inline-flex items-center me-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
                 onClick={play}
               >
                 <MdPlayArrow size="25" />
@@ -376,7 +376,7 @@ function HalfCourt() {
                 <MdFileUpload size="20" />
                 <input type="file" accept=".json" onChange={upload} className="hidden" ref={inputRef} />
               </button>
-              <Link to="/" className="inline-block ml-2">
+              <Link to="/" className="inline-block">
                 <img src={appLogo} alt="tactics-board logo" width="30" height="30" />
               </Link>
             </div>

@@ -28,7 +28,8 @@ export default defineConfig(({ mode }) => {
           short_name: "tactics-board",
           description: "tactics board",
           theme_color: "#ffffff",
-          start_url: "/",
+          start_url: base,
+          scope: base,
           display: "standalone",
           icons: [
             {
