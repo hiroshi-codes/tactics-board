@@ -6,6 +6,17 @@ import { enqueueSnackbar } from "notistack";
 import { MdAdd, MdDelete, MdFileUpload, MdPlayArrow, MdRemove, MdSave } from "react-icons/md";
 
 import appLogo from "/pwa-64x64.png";
+import basketballSvg from "/basketball.svg";
+import red1Svg from "/red1.svg";
+import red2Svg from "/red2.svg";
+import red3Svg from "/red3.svg";
+import red4Svg from "/red4.svg";
+import red5Svg from "/red5.svg";
+import blue1Svg from "/blue1.svg";
+import blue2Svg from "/blue2.svg";
+import blue3Svg from "/blue3.svg";
+import blue4Svg from "/blue4.svg";
+import blue5Svg from "/blue5.svg";
 
 interface Position {
   x: number;
@@ -26,7 +37,17 @@ const firstPosition = {
 const images: {
   [key: string]: HTMLImageElement;
 } = {
-  ball: await loadImage("/basketball.svg"),
+  ball: await loadImage(basketballSvg),
+  red1: await loadImage(red1Svg),
+  red2: await loadImage(red2Svg),
+  red3: await loadImage(red3Svg),
+  red4: await loadImage(red4Svg),
+  red5: await loadImage(red5Svg),
+  blue1: await loadImage(blue1Svg),
+  blue2: await loadImage(blue2Svg),
+  blue3: await loadImage(blue3Svg),
+  blue4: await loadImage(blue4Svg),
+  blue5: await loadImage(blue5Svg),
 };
 const initialPosition: {
   [key: string]: Position;
@@ -44,13 +65,12 @@ for (let index = 1; index <= 5; index++) {
     x: firstPosition.x + addX,
     y: firstPosition.y,
   };
-  images[`red${index}`] = await loadImage(`/red${index}.svg`);
+
   initialPosition[`blue${index}`] = {
     color: "blue",
     x: firstPosition.x + addX,
     y: firstPosition.y + size + 10,
   };
-  images[`blue${index}`] = await loadImage(`/blue${index}.svg`);
 }
 
 function loadImage(src: string) {
@@ -371,7 +391,7 @@ function HalfCourt() {
             onTouchMove={TouchMove}
             onMouseUp={EndMove}
             onTouchEnd={EndMove}
-            className="bg-[url(/half-court.png)] bg-contain bg-no-repeat"
+            className={`bg-[url(${import.meta.env.BASE_URL}half-court.png)] bg-contain bg-no-repeat`}
           />
         </div>
       </div>
