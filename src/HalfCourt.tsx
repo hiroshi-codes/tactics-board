@@ -132,6 +132,7 @@ function HalfCourt() {
   const [drug, setDrug] = React.useState(false);
   const [help, setHelp] = React.useState(false);
   const targetKey = React.useRef("");
+  const playing = React.useRef(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const newPosition = React.useRef<{ [key: string]: Position }>(initialPosition);
   const positions = React.useRef<{ [key: string]: Position }[]>([initialPosition]);
@@ -221,9 +222,12 @@ function HalfCourt() {
     }
   };
   const add = () => {
+    if (JSON.stringify(positions.current.slice(-1)[0]) === JSON.stringify(newPosition.current)) {
+      return;
+    }
     positions.current.push(newPosition.current);
     setRender(!render);
-    enqueueSnackbar(`${positions.current.length - 1}フレーム目、登録しました`, { autoHideDuration: 1000 });
+    enqueueSnackbar(`${positions.current.length - 1}フレーム目、登録しました`);
   };
 
   const remove = () => {
@@ -234,29 +238,39 @@ function HalfCourt() {
     newPosition.current = positions.current.slice(-1)[0];
 
     setRender(!render);
-    enqueueSnackbar(`${positions.current.length}フレーム目、削除しました`, { autoHideDuration: 1000 });
+    enqueueSnackbar(`${positions.current.length}フレーム目、削除しました`);
   };
 
   const play = () => {
+    if (playing.current) {
+      return;
+    }
+    if (!positions.current[1]) {
+      return;
+    }
     const position: {
       [key: string]: Position;
     } = JSON.parse(JSON.stringify(positions.current[1]));
     if (!position) {
       return;
     }
+    playing.current = true;
     let loop = 0;
     const render = (index: number) => {
       if (!canvasRef.current) {
+        playing.current = false;
         throw new Error("canvas要素の取得に失敗しました");
       }
       const canvas = canvasRef.current;
       const ctx = canvas.getContext("2d");
       if (!ctx) {
+        playing.current = false;
         throw new Error("context取得失敗");
       }
       const firstPosition = positions.current[index];
       const nextPosition = positions.current[index + 1];
       if (!nextPosition) {
+        playing.current = false;
         return;
       }
 
@@ -294,14 +308,21 @@ function HalfCourt() {
   };
 
   const clear = () => {
+    if (positions.current.length === 1) {
+      return;
+    }
     positions.current = [initialPosition];
     newPosition.current = initialPosition;
     setRender(!render);
   };
 
-  const download = () => {
+  const download = async () => {
+    if (positions.current.length === 1) {
+      return;
+    }
     const fileName = `tactics-board_${format(new Date(), "yyyyMMddhhmmss")}.json`;
-    jsonFileExport(positions.current, fileName);
+    await jsonFileExport(positions.current, fileName);
+    enqueueSnackbar(`${fileName}、保存しました`);
   };
 
   const inputClick = () => {
@@ -320,6 +341,7 @@ function HalfCourt() {
       positions.current = result.data;
       newPosition.current = positions.current.slice(-1)[0];
       setRender(!render);
+      enqueueSnackbar(`${file.name}、読み込みました`);
     }
     e.target.value = "";
   };
