@@ -26,30 +26,28 @@ function Help({ show, onClose }: { show: boolean; onClose: React.MouseEventHandl
         <div className="flex min-h-full justify-center p-4 text-center sm:p-0">
           <div className="relative transform overflow-hidden rounded-lg  text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
             <div className=" px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-              <div className="sm:flex sm:items-start">
-                <div className="mt-3 text-center sm:mt-0">
-                  <h3 className="text-base font-semibold text-white" id="modal-title">
-                    操作説明
-                  </h3>
-                  <Description icon={<img src={appLogo} alt="tactics-board logo" width="35" height="35" />}>TOP画面にもどります</Description>
-                  <Description icon={<IconButton Icon={MdAdd} color="blue" />}>現在の表示を登録します</Description>
-                  <Description icon={<IconButton Icon={MdRemove} color="red" />}>現在の表示を削除してひとつ前を表示します</Description>
-                  <Description icon={<IconButton Icon={MdPlayArrow} color="green" />}>登録した順番にアニメーションします</Description>
-                  <Description icon={<IconButton Icon={MdDelete} color="red" />}>初期状態に戻します</Description>
-                  <Description icon={<IconButton Icon={MdSave} color="lime" />}>Jsonファイルで保存します</Description>
-                  <Description icon={<IconButton Icon={MdFileUpload} color="lime" />}>Jsonファイルを読み込んで反映します</Description>
-                  <Description
-                    icon={
-                      <>
-                        <img src={basketballSvg} alt="tactics-board ball" width="30" height="30" className="ml-1" />
-                        <img src={red1Svg} alt="tactics-board ball" width="30" height="30" className="ml-1" />
-                        <img src={blue1Svg} alt="tactics-board ball" width="30" height="30" className="ml-1" />
-                      </>
-                    }
-                  >
-                    好きな場所に配置してください
-                  </Description>
-                </div>
+              <div className="mt-3 text-center sm:mt-0">
+                <h3 className="text-base font-semibold text-white" id="modal-title">
+                  操作説明
+                </h3>
+                <Description icon={<img src={appLogo} alt="tactics-board logo" width="35" height="35" />}>TOP画面にもどります</Description>
+                <Description icon={<IconButton Icon={MdAdd} color="blue" />}>現在の表示を登録します</Description>
+                <Description icon={<IconButton Icon={MdRemove} color="red" />}>現在の表示を削除してひとつ前を表示します</Description>
+                <Description icon={<IconButton Icon={MdPlayArrow} color="green" />}>登録した順番にアニメーションします</Description>
+                <Description icon={<IconButton Icon={MdDelete} color="red" />}>初期状態に戻します</Description>
+                <Description icon={<IconButton Icon={MdSave} color="lime" />}>Jsonファイルで保存します</Description>
+                <Description icon={<IconButton Icon={MdFileUpload} color="lime" />}>Jsonファイルを読み込んで反映します</Description>
+                <Description
+                  icon={
+                    <>
+                      <img src={basketballSvg} alt="tactics-board ball" width="30" height="30" className="ml-1" />
+                      <img src={red1Svg} alt="tactics-board ball" width="30" height="30" className="ml-1" />
+                      <img src={blue1Svg} alt="tactics-board ball" width="30" height="30" className="ml-1" />
+                    </>
+                  }
+                >
+                  好きな場所に配置してください
+                </Description>
               </div>
             </div>
             <div className="px-4 py-3 sm:flex sm:justify-center sm:px-6">

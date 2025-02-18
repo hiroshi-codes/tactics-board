@@ -9,7 +9,7 @@ import HalfCourt from "./HalfCourt";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <SnackbarProvider autoHideDuration={1000} anchorOrigin={{ horizontal: "right", vertical: "bottom" }} />
+    <SnackbarProvider autoHideDuration={3000} anchorOrigin={{ horizontal: "right", vertical: "bottom" }} />
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<App />} />
