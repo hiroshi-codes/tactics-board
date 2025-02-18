@@ -3,10 +3,11 @@ import { Link } from "react-router-dom";
 
 import { format } from "date-fns";
 import { enqueueSnackbar } from "notistack";
-import { MdAdd, MdDelete, MdFileUpload, MdHelp, MdPlayArrow, MdRemove, MdSave } from "react-icons/md";
+import { MdAdd, MdDelete, MdFiberManualRecord, MdFileUpload, MdHelp, MdPlayArrow, MdRemove, MdSave } from "react-icons/md";
 
 import appLogo from "/pwa-64x64.png";
 import basketballSvg from "/basketball.svg";
+import halfCourtPng from "/half-court.png";
 import red1Svg from "/red1.svg";
 import red2Svg from "/red2.svg";
 import red3Svg from "/red3.svg";
@@ -40,6 +41,7 @@ const images: {
   [key: string]: HTMLImageElement;
 } = {
   ball: await loadImage(basketballSvg),
+  halfCourt: await loadImage(halfCourtPng),
   red1: await loadImage(red1Svg),
   red2: await loadImage(red2Svg),
   red3: await loadImage(red3Svg),
@@ -149,6 +151,7 @@ function HalfCourt() {
 
     //描画前に既に描画済みのものを消してリセット
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    ctx.drawImage(images["halfCourt"], 0, 0, ctx.canvas.width, ctx.canvas.width);
     if (newPosition.current) {
       for (const [key, value] of Object.entries(newPosition.current)) {
         ctx.drawImage(images[key], value.x - size / 2, value.y - size / 2, size, size);
@@ -241,70 +244,111 @@ function HalfCourt() {
     enqueueSnackbar(`${positions.current.length}フレーム目、削除しました`);
   };
 
-  const play = () => {
-    if (playing.current) {
-      return;
-    }
+  const play = async () => {
+    return new Promise<boolean>((resolve, reject) => {
+      if (playing.current) {
+        resolve(false);
+        return;
+      }
+      if (!positions.current[1]) {
+        resolve(false);
+        return;
+      }
+      const position: {
+        [key: string]: Position;
+      } = JSON.parse(JSON.stringify(positions.current[1]));
+      if (!position) {
+        resolve(false);
+        return;
+      }
+      playing.current = true;
+      let loop = 0;
+      const render = (index: number) => {
+        if (!canvasRef.current) {
+          playing.current = false;
+          reject("canvas要素の取得に失敗しました");
+          return;
+        }
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          playing.current = false;
+          reject("context取得失敗");
+          return;
+        }
+        const firstPosition = positions.current[index];
+        const nextPosition = positions.current[index + 1];
+        if (!nextPosition) {
+          playing.current = false;
+          resolve(true);
+          return;
+        }
+
+        //描画前に既に描画済みのものを消してリセット
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        ctx.fillStyle = "#f3b75f";
+        ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        ctx.drawImage(images["halfCourt"], 0, 0, ctx.canvas.width, ctx.canvas.width);
+        let next = 0;
+        for (const [key, value] of Object.entries(firstPosition)) {
+          const nextValue = nextPosition[key];
+          const diffX = (nextValue.x - value.x) / 100;
+          const diffY = (nextValue.y - value.y) / 100;
+          if (loop > 0) {
+            position[key].x += diffX;
+            position[key].y += diffY;
+          }
+          if ((diffX >= 0 && nextValue.x <= position[key].x) || (diffX <= 0 && nextValue.x >= position[key].x)) {
+            next += 1;
+            ctx.drawImage(images[key], nextValue.x - size / 2, nextValue.y - size / 2, size, size);
+          } else {
+            ctx.drawImage(images[key], position[key].x - size / 2, position[key].y - size / 2, size, size);
+          }
+        }
+        ctx.font = "24px serif";
+        ctx.fillStyle = "white";
+        ctx.fillText(`${String(index)} → ${String(index + 1)}`, 20, 40);
+
+        loop += 1;
+        if (Object.keys(firstPosition).length === next) {
+          // 次の場所
+          requestAnimationFrame(() => render(index + 1));
+        } else {
+          requestAnimationFrame(() => render(index));
+        }
+      };
+      render(1);
+    });
+  };
+
+  const recording = async () => {
     if (!positions.current[1]) {
       return;
     }
-    const position: {
-      [key: string]: Position;
-    } = JSON.parse(JSON.stringify(positions.current[1]));
-    if (!position) {
+    const canvas = canvasRef.current;
+    if (!canvas) {
       return;
     }
-    playing.current = true;
-    let loop = 0;
-    const render = (index: number) => {
-      if (!canvasRef.current) {
-        playing.current = false;
-        throw new Error("canvas要素の取得に失敗しました");
-      }
-      const canvas = canvasRef.current;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) {
-        playing.current = false;
-        throw new Error("context取得失敗");
-      }
-      const firstPosition = positions.current[index];
-      const nextPosition = positions.current[index + 1];
-      if (!nextPosition) {
-        playing.current = false;
-        return;
-      }
+    const stream = canvas.captureStream();
+    const recorder = new MediaRecorder(stream, { mimeType: "video/mp4" });
+    //ダウンロード用のリンクを準備
+    //録画終了時に動画ファイルのダウンロードリンクを生成する処理
+    recorder.ondataavailable = function (e) {
+      const fileName = `tactics-board_${format(new Date(), "yyyyMMddhhmmss")}.mp4`;
 
-      //描画前に既に描画済みのものを消してリセット
-      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-      let next = 0;
-      for (const [key, value] of Object.entries(firstPosition)) {
-        const nextValue = nextPosition[key];
-        const diffX = (nextValue.x - value.x) / 100;
-        const diffY = (nextValue.y - value.y) / 100;
-        if (loop > 0) {
-          position[key].x += diffX;
-          position[key].y += diffY;
-        }
-        if ((diffX >= 0 && nextValue.x <= position[key].x) || (diffX <= 0 && nextValue.x >= position[key].x)) {
-          next += 1;
-          ctx.drawImage(images[key], nextValue.x - size / 2, nextValue.y - size / 2, size, size);
-        } else {
-          ctx.drawImage(images[key], position[key].x - size / 2, position[key].y - size / 2, size, size);
-        }
-      }
-      ctx.font = "24px serif";
-      ctx.fillStyle = "white";
-      ctx.fillText(`${String(index)} → ${String(index + 1)}`, 20, 40);
-
-      loop += 1;
-      if (Object.keys(firstPosition).length === next) {
-        // 次の場所
-        requestAnimationFrame(() => render(index + 1));
-      } else {
-        requestAnimationFrame(() => render(index));
-      }
+      const data = new Blob([e.data], { type: e.data.type });
+      const jsonURL = window.URL.createObjectURL(data);
+      const link = document.createElement("a");
+      document.body.appendChild(link);
+      link.href = jsonURL;
+      link.setAttribute("download", fileName);
+      link.click();
+      document.body.removeChild(link);
     };
-    render(1);
+    //録画開始
+    recorder.start();
+    await play();
+    recorder.stop();
   };
 
   const clear = () => {
@@ -369,6 +413,7 @@ function HalfCourt() {
               <IconButton Icon={MdAdd} color="blue" size={25} buttonProps={{ onClick: add }} />
               <IconButton Icon={MdRemove} color="red" size={25} buttonProps={{ onClick: remove }} className="ml-4" />
               <IconButton Icon={MdPlayArrow} color="green" size={25} buttonProps={{ onClick: play }} className="ml-4" />
+              <IconButton Icon={MdFiberManualRecord} color="red" size={25} buttonProps={{ onClick: recording }} className="ml-4" />
               <IconButton Icon={MdDelete} color="red" size={25} buttonProps={{ onClick: clear }} className="ml-4" />
             </div>
             <div className="text-white">{positions.current.length - 1} フレーム</div>
@@ -382,7 +427,6 @@ function HalfCourt() {
             onTouchMove={TouchMove}
             onMouseUp={EndMove}
             onTouchEnd={EndMove}
-            className="bg-[url(/half-court.png)] bg-contain bg-no-repeat"
           />
         </div>
       </div>
