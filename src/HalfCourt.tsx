@@ -148,8 +148,6 @@ function HalfCourt() {
 
     //描画前に既に描画済みのものを消してリセット
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-
-    //赤色の四角形を描画
     if (newPosition.current) {
       for (const [key, value] of Object.entries(newPosition.current)) {
         ctx.drawImage(images[key], value.x - size / 2, value.y - size / 2, size, size);
@@ -313,6 +311,7 @@ function HalfCourt() {
 
   const upload: React.ChangeEventHandler<HTMLInputElement> | undefined = async (e) => {
     if (!e.target.files || e.target.files.length === 0) {
+      e.target.value = "";
       return;
     }
 
@@ -323,6 +322,7 @@ function HalfCourt() {
       newPosition.current = positions.current.slice(-1)[0];
       setRender(!render);
     }
+    e.target.value = "";
   };
 
   return (
