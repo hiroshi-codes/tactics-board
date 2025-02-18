@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 
 import { format } from "date-fns";
 import { enqueueSnackbar } from "notistack";
-import { MdAdd, MdDelete, MdFileUpload, MdPlayArrow, MdRemove, MdSave } from "react-icons/md";
+import { MdAdd, MdDelete, MdFileUpload, MdHelp, MdPlayArrow, MdRemove, MdSave } from "react-icons/md";
 
 import appLogo from "/pwa-64x64.png";
 import basketballSvg from "/basketball.svg";
@@ -18,10 +18,12 @@ import blue3Svg from "/blue3.svg";
 import blue4Svg from "/blue4.svg";
 import blue5Svg from "/blue5.svg";
 
+import Help from "./Help";
+import IconButton from "./IconButton";
+
 interface Position {
   x: number;
   y: number;
-  color: string;
 }
 
 const size = 40 as const;
@@ -53,7 +55,6 @@ const initialPosition: {
   [key: string]: Position;
 } = {
   ball: {
-    color: "orange",
     x: firstPosition.x + (size + 10) * 5,
     y: firstPosition.y,
   },
@@ -61,13 +62,11 @@ const initialPosition: {
 for (let index = 1; index <= 5; index++) {
   const addX = (size + 10) * (index - 1);
   initialPosition[`red${index}`] = {
-    color: "red",
     x: firstPosition.x + addX,
     y: firstPosition.y,
   };
 
   initialPosition[`blue${index}`] = {
-    color: "blue",
     x: firstPosition.x + addX,
     y: firstPosition.y + size + 10,
   };
@@ -128,9 +127,10 @@ function jsonFileImport(file: File): Promise<{
 }
 
 function HalfCourt() {
-  const canvasRef = React.useRef<HTMLCanvasElement>(null); //canvas要素取得
+  const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const [render, setRender] = React.useState(false);
-  const [drug, setDrug] = React.useState(false); //マウスドラック状態の管理
+  const [drug, setDrug] = React.useState(false);
+  const [help, setHelp] = React.useState(false);
   const targetKey = React.useRef("");
   const inputRef = React.useRef<HTMLInputElement>(null);
   const newPosition = React.useRef<{ [key: string]: Position }>(initialPosition);
@@ -148,8 +148,6 @@ function HalfCourt() {
 
     //描画前に既に描画済みのものを消してリセット
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-
-    //赤色の四角形を描画
     if (newPosition.current) {
       for (const [key, value] of Object.entries(newPosition.current)) {
         ctx.drawImage(images[key], value.x - size / 2, value.y - size / 2, size, size);
@@ -277,7 +275,6 @@ function HalfCourt() {
           next += 1;
           ctx.drawImage(images[key], nextValue.x - size / 2, nextValue.y - size / 2, size, size);
         } else {
-          ctx.fillStyle = position[key].color;
           ctx.drawImage(images[key], position[key].x - size / 2, position[key].y - size / 2, size, size);
         }
       }
@@ -313,6 +310,7 @@ function HalfCourt() {
 
   const upload: React.ChangeEventHandler<HTMLInputElement> | undefined = async (e) => {
     if (!e.target.files || e.target.files.length === 0) {
+      e.target.value = "";
       return;
     }
 
@@ -323,65 +321,36 @@ function HalfCourt() {
       newPosition.current = positions.current.slice(-1)[0];
       setRender(!render);
     }
+    e.target.value = "";
   };
 
   return (
     <>
+      <Help show={help} onClose={() => setHelp(false)} />
       <div className="flex justify-center">
         <div>
-          <div className="flex justify-between items-center px-4 pt-2">
+          <div className="flex justify-between items-center p-2">
+            <Link to="/" className="flex items-center">
+              <img src={appLogo} alt="tactics-board logo" width="35" height="35" />
+              tactics board
+            </Link>
             <div>
-              <button
-                type="button"
-                className="ml-2 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-full text-sm p-1 text-center inline-flex items-center me-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-                onClick={add}
-              >
-                <MdAdd size="25" />
-              </button>
-              <button
-                type="button"
-                className="ml-4 text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-full text-sm p-1 text-center inline-flex items-center me-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800"
-                onClick={remove}
-              >
-                <MdRemove size="25" />
-              </button>
-              <button
-                type="button"
-                className="ml-4 text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 font-medium rounded-full text-sm p-1 text-center inline-flex items-center me-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800"
-                onClick={play}
-              >
-                <MdPlayArrow size="25" />
-              </button>
-              <button
-                type="button"
-                className="ml-4 text-white bg-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-full text-sm p-1 text-center inline-flex items-center me-2 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800"
-                onClick={clear}
-              >
-                <MdDelete size="25" />
-              </button>
-            </div>
-            <div>
-              <button
-                type="button"
-                className="text-white bg-lime-700 hover:bg-lime-800 focus:ring-4 focus:outline-none focus:ring-lime-300 font-medium rounded-full text-sm p-1 text-center inline-flex items-center me-2 dark:bg-lime-600 dark:hover:bg-lime-700 dark:focus:ring-lime-800"
-                onClick={download}
-              >
-                <MdSave size="20" />
-              </button>
-              <button
-                type="button"
-                className="ml-2 text-white bg-lime-700 hover:bg-lime-800 focus:ring-4 focus:outline-none focus:ring-lime-300 font-medium rounded-full text-sm p-1 text-center inline-flex items-center me-2 dark:bg-lime-600 dark:hover:bg-lime-700 dark:focus:ring-lime-800"
-                onClick={inputClick}
-              >
-                <MdFileUpload size="20" />
+              <IconButton Icon={MdHelp} color="lime" buttonProps={{ onClick: () => setHelp(true) }} />
+              <IconButton Icon={MdSave} color="lime" buttonProps={{ onClick: download }} className="ml-2" />
+              <IconButton Icon={MdFileUpload} color="lime" buttonProps={{ onClick: inputClick }} className="ml-2">
                 <input type="file" accept=".json" onChange={upload} className="hidden" ref={inputRef} />
-              </button>
-              <Link to="/" className="inline-block">
-                <img src={appLogo} alt="tactics-board logo" width="30" height="30" />
-              </Link>
+              </IconButton>
             </div>
           </div>
-          <div className="mt-8 mr-4 text-right text-white">{positions.current.length - 1} フレーム</div>
+          <div className="flex justify-between items-center px-2">
+            <div>
+              <IconButton Icon={MdAdd} color="blue" size={25} buttonProps={{ onClick: add }} />
+              <IconButton Icon={MdRemove} color="red" size={25} buttonProps={{ onClick: remove }} className="ml-4" />
+              <IconButton Icon={MdPlayArrow} color="green" size={25} buttonProps={{ onClick: play }} className="ml-4" />
+              <IconButton Icon={MdDelete} color="red" size={25} buttonProps={{ onClick: clear }} className="ml-4" />
+            </div>
+            <div className="text-white">{positions.current.length - 1} フレーム</div>
+          </div>
           <canvas
             ref={canvasRef}
             width={canvasSize.width}
