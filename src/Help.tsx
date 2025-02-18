@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 
-import { MdAdd, MdDelete, MdFileUpload, MdPlayArrow, MdRemove, MdSave } from "react-icons/md";
+import { MdAdd, MdDelete, MdFiberManualRecord, MdFileUpload, MdPlayArrow, MdRemove, MdSave } from "react-icons/md";
 
 import IconButton from "./IconButton";
 
@@ -34,6 +34,7 @@ function Help({ show, onClose }: { show: boolean; onClose: React.MouseEventHandl
                 <Description icon={<IconButton Icon={MdAdd} color="blue" />}>現在の表示を登録します</Description>
                 <Description icon={<IconButton Icon={MdRemove} color="red" />}>現在の表示を削除してひとつ前を表示します</Description>
                 <Description icon={<IconButton Icon={MdPlayArrow} color="green" />}>登録した順番にアニメーションします</Description>
+                <Description icon={<IconButton Icon={MdFiberManualRecord} color="red" />}>アニメーションを動画に変換して保存します</Description>
                 <Description icon={<IconButton Icon={MdDelete} color="red" />}>初期状態に戻します</Description>
                 <Description icon={<IconButton Icon={MdSave} color="lime" />}>Jsonファイルで保存します</Description>
                 <Description icon={<IconButton Icon={MdFileUpload} color="lime" />}>Jsonファイルを読み込んで反映します</Description>
