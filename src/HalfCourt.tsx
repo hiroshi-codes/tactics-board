@@ -29,13 +29,13 @@ interface Position {
 
 const size = 40 as const;
 const canvasSize = {
-  width: screen.width < 480 ? screen.width : 480,
-  height: screen.width < 480 ? 550 : 700,
+  width: window.innerWidth < 480 ? window.innerWidth : 480,
+  height: window.innerWidth < 480 ? 550 : window.innerHeight - 90,
 } as const;
 
 const firstPosition = {
   x: size / 2 + 40,
-  y: screen.width < 480 ? 480 : 600,
+  y: window.innerWidth < 480 ? 480 : 600,
 };
 const images: {
   [key: string]: HTMLImageElement;
@@ -133,8 +133,8 @@ function HalfCourt() {
   const [render, setRender] = React.useState(false);
   const [drug, setDrug] = React.useState(false);
   const [help, setHelp] = React.useState(false);
+  const [playing, setPlaying] = React.useState(false);
   const targetKey = React.useRef("");
-  const playing = React.useRef(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const newPosition = React.useRef<{ [key: string]: Position }>(initialPosition);
   const positions = React.useRef<{ [key: string]: Position }[]>([initialPosition]);
@@ -212,13 +212,19 @@ function HalfCourt() {
     if (drug && canvasRef.current) {
       const canvas = canvasRef.current;
       const rect = canvas.getBoundingClientRect(); //キャンバスの位置取得
+      let x = e.changedTouches[0].clientX - rect.left;
+      let y = e.changedTouches[0].clientY - rect.top;
+      if (x < 0) x = 0;
+      if (y < 0) y = 0;
+      if (x > canvasSize.width) x = canvasSize.width;
+      if (y > canvasSize.height) y = canvasSize.height;
       const target = newPosition.current[targetKey.current];
       newPosition.current = {
         ...newPosition.current,
         [targetKey.current]: {
           ...target,
-          x: e.changedTouches[0].clientX - rect.left,
-          y: e.changedTouches[0].clientY - rect.top,
+          x,
+          y,
         },
       };
       setRender(!render);
@@ -245,42 +251,40 @@ function HalfCourt() {
   };
 
   const play = async () => {
+    if (playing) {
+      return false;
+    }
+    if (!positions.current[2]) {
+      return false;
+    }
+    const position: {
+      [key: string]: Position;
+    } = JSON.parse(JSON.stringify(positions.current[1]));
+    if (!position) {
+      return false;
+    }
+    setPlaying(true);
     return new Promise<boolean>((resolve, reject) => {
-      if (playing.current) {
-        resolve(false);
-        return;
-      }
-      if (!positions.current[1]) {
-        resolve(false);
-        return;
-      }
-      const position: {
-        [key: string]: Position;
-      } = JSON.parse(JSON.stringify(positions.current[1]));
-      if (!position) {
-        resolve(false);
-        return;
-      }
-      playing.current = true;
       let loop = 0;
       const render = (index: number) => {
         if (!canvasRef.current) {
-          playing.current = false;
           reject("canvas要素の取得に失敗しました");
+          setPlaying(false);
           return;
         }
         const canvas = canvasRef.current;
         const ctx = canvas.getContext("2d");
         if (!ctx) {
-          playing.current = false;
           reject("context取得失敗");
+          setPlaying(false);
           return;
         }
         const firstPosition = positions.current[index];
         const nextPosition = positions.current[index + 1];
         if (!nextPosition) {
-          playing.current = false;
+          ctx.fillText("END", 100, 40);
           resolve(true);
+          setPlaying(false);
           return;
         }
 
@@ -289,7 +293,6 @@ function HalfCourt() {
         ctx.fillStyle = "#f3b75f";
         ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         ctx.drawImage(images["halfCourt"], 0, 0, ctx.canvas.width, ctx.canvas.width);
-        let next = 0;
         for (const [key, value] of Object.entries(firstPosition)) {
           const nextValue = nextPosition[key];
           const diffX = (nextValue.x - value.x) / 100;
@@ -299,7 +302,6 @@ function HalfCourt() {
             position[key].y += diffY;
           }
           if ((diffX >= 0 && nextValue.x <= position[key].x) || (diffX <= 0 && nextValue.x >= position[key].x)) {
-            next += 1;
             ctx.drawImage(images[key], nextValue.x - size / 2, nextValue.y - size / 2, size, size);
           } else {
             ctx.drawImage(images[key], position[key].x - size / 2, position[key].y - size / 2, size, size);
@@ -310,7 +312,7 @@ function HalfCourt() {
         ctx.fillText(`${String(index)} → ${String(index + 1)}`, 20, 40);
 
         loop += 1;
-        if (Object.keys(firstPosition).length === next) {
+        if (loop % 100 === 0) {
           // 次の場所
           requestAnimationFrame(() => render(index + 1));
         } else {
@@ -346,15 +348,16 @@ function HalfCourt() {
       document.body.removeChild(link);
     };
     //録画開始
+    setTimeout(() => {
+      setPlaying(true);
+    }, 1);
     recorder.start();
     await play();
     recorder.stop();
+    setPlaying(false);
   };
 
   const clear = () => {
-    if (positions.current.length === 1) {
-      return;
-    }
     positions.current = [initialPosition];
     newPosition.current = initialPosition;
     setRender(!render);
@@ -401,20 +404,20 @@ function HalfCourt() {
               tactics board
             </Link>
             <div>
-              <IconButton Icon={MdHelp} color="lime" buttonProps={{ onClick: () => setHelp(true) }} />
-              <IconButton Icon={MdSave} color="lime" buttonProps={{ onClick: download }} className="ml-2" />
-              <IconButton Icon={MdFileUpload} color="lime" buttonProps={{ onClick: inputClick }} className="ml-2">
+              <IconButton Icon={MdHelp} color="lime" buttonProps={{ onClick: () => setHelp(true), disabled: playing }} />
+              <IconButton Icon={MdSave} color="lime" buttonProps={{ onClick: download, disabled: playing }} className="ml-2" />
+              <IconButton Icon={MdFileUpload} color="lime" buttonProps={{ onClick: inputClick, disabled: playing }} className="ml-2">
                 <input type="file" accept=".json" onChange={upload} className="hidden" ref={inputRef} />
               </IconButton>
             </div>
           </div>
           <div className="flex justify-between items-center px-2">
             <div>
-              <IconButton Icon={MdAdd} color="blue" size={25} buttonProps={{ onClick: add }} />
-              <IconButton Icon={MdRemove} color="red" size={25} buttonProps={{ onClick: remove }} className="ml-4" />
-              <IconButton Icon={MdPlayArrow} color="green" size={25} buttonProps={{ onClick: play }} className="ml-4" />
-              <IconButton Icon={MdFiberManualRecord} color="red" size={25} buttonProps={{ onClick: recording }} className="ml-4" />
-              <IconButton Icon={MdDelete} color="red" size={25} buttonProps={{ onClick: clear }} className="ml-4" />
+              <IconButton Icon={MdAdd} color="blue" size={25} buttonProps={{ onClick: add, disabled: playing }} />
+              <IconButton Icon={MdRemove} color="red" size={25} buttonProps={{ onClick: remove, disabled: playing }} className="ml-4" />
+              <IconButton Icon={MdPlayArrow} color="green" size={25} buttonProps={{ onClick: play, disabled: playing }} className="ml-4" />
+              <IconButton Icon={MdFiberManualRecord} color="red" size={25} buttonProps={{ onClick: recording, disabled: playing }} className="ml-4" />
+              <IconButton Icon={MdDelete} color="red" size={25} buttonProps={{ onClick: clear, disabled: playing }} className="ml-4" />
             </div>
             <div className="text-white">{positions.current.length - 1} フレーム</div>
           </div>
