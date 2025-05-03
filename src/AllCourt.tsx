@@ -7,7 +7,7 @@ import { MdAdd, MdDelete, MdFiberManualRecord, MdFileUpload, MdHelp, MdPlayArrow
 
 import appLogo from "/pwa-64x64.png";
 import basketballSvg from "/basketball.svg";
-import halfCourtPng from "/half-court.png";
+import halfCourtPng from "/all-court.png";
 import red1Svg from "/red1.svg";
 import red2Svg from "/red2.svg";
 import red3Svg from "/red3.svg";
@@ -34,8 +34,8 @@ const canvasSize = {
 } as const;
 
 const firstPosition = {
-  x: size / 2 + 40,
-  y: window.innerWidth < 480 ? 480 : 600,
+  x: size / 2 + 5,
+  y: size / 2 + 10,
 };
 const images: {
   [key: string]: HTMLImageElement;
@@ -55,23 +55,25 @@ const images: {
 };
 const initialPosition: {
   [key: string]: Position;
-} = {
-  ball: {
-    x: firstPosition.x + (size + 10) * 5,
-    y: firstPosition.y,
-  },
-};
-for (let index = 1; index <= 5; index++) {
-  const addX = (size + 10) * (index - 1);
-  initialPosition[`red${index}`] = {
-    x: firstPosition.x + addX,
-    y: firstPosition.y,
-  };
-
-  initialPosition[`blue${index}`] = {
-    x: firstPosition.x + addX,
-    y: firstPosition.y + size + 10,
-  };
+} = {};
+for (let index = 1; index <= 11; index++) {
+  const add = (size + 5) * (index - 1);
+  if (index <= 5) {
+    initialPosition[`red${index}`] = {
+      x: firstPosition.x,
+      y: firstPosition.y + add,
+    };
+  } else if (index === 6) {
+    initialPosition[`ball`] = {
+      x: firstPosition.x,
+      y: firstPosition.y + add,
+    };
+  } else {
+    initialPosition[`blue${index - 6}`] = {
+      x: firstPosition.x,
+      y: firstPosition.y + add,
+    };
+  }
 }
 
 function loadImage(src: string) {
@@ -151,7 +153,7 @@ function HalfCourt() {
 
     //描画前に既に描画済みのものを消してリセット
     ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    ctx.drawImage(images["halfCourt"], 0, 0, ctx.canvas.width, ctx.canvas.width);
+    ctx.drawImage(images["halfCourt"], 0, 0, ctx.canvas.width, ctx.canvas.height);
     if (newPosition.current) {
       for (const [key, value] of Object.entries(newPosition.current)) {
         ctx.drawImage(images[key], value.x - size / 2, value.y - size / 2, size, size);
@@ -282,7 +284,7 @@ function HalfCourt() {
         const firstPosition = positions.current[index];
         const nextPosition = positions.current[index + 1];
         if (!nextPosition) {
-          ctx.fillText("END", 100, 40);
+          ctx.fillText("END", 130, 40);
           resolve(true);
           setPlaying(false);
           return;
@@ -292,7 +294,7 @@ function HalfCourt() {
         ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
         ctx.fillStyle = "#f3b75f";
         ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-        ctx.drawImage(images["halfCourt"], 0, 0, ctx.canvas.width, ctx.canvas.width);
+        ctx.drawImage(images["halfCourt"], 0, 0, ctx.canvas.width, ctx.canvas.height);
         for (const [key, value] of Object.entries(firstPosition)) {
           const nextValue = nextPosition[key];
           const diffX = (nextValue.x - value.x) / 100;
@@ -309,7 +311,7 @@ function HalfCourt() {
         }
         ctx.font = "24px serif";
         ctx.fillStyle = "white";
-        ctx.fillText(`${String(index)} → ${String(index + 1)}`, 20, 40);
+        ctx.fillText(`${String(index)} → ${String(index + 1)}`, 50, 40);
 
         loop += 1;
         if (loop % 100 === 0) {
@@ -403,7 +405,7 @@ function HalfCourt() {
               <img src={appLogo} alt="tactics-board logo" width="35" height="35" />
               tactics board
             </Link>
-            <Link to="/all-court">ALL</Link>
+            <Link to="/half-court">HALF</Link>
             <div>
               <IconButton Icon={MdHelp} color="lime" buttonProps={{ onClick: () => setHelp(true), disabled: playing }} />
               <IconButton Icon={MdSave} color="lime" buttonProps={{ onClick: download, disabled: playing }} className="ml-2" />
