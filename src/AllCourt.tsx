@@ -7,7 +7,7 @@ import { MdAdd, MdDelete, MdFiberManualRecord, MdFileUpload, MdHelp, MdPlayArrow
 
 import appLogo from "/pwa-64x64.png";
 import basketballSvg from "/basketball.svg";
-import halfCourtPng from "/all-court.png";
+import allCountPng from "/all-court.png";
 import red1Svg from "/red1.svg";
 import red2Svg from "/red2.svg";
 import red3Svg from "/red3.svg";
@@ -29,8 +29,8 @@ interface Position {
 
 const size = 40 as const;
 const canvasSize = {
-  width: window.innerWidth < 480 ? window.innerWidth : 480,
-  height: window.innerWidth < 480 ? 550 : window.innerHeight - 90,
+  width: window.innerWidth,
+  height: window.innerHeight - 90,
 } as const;
 
 const firstPosition = {
@@ -41,7 +41,7 @@ const images: {
   [key: string]: HTMLImageElement;
 } = {
   ball: await loadImage(basketballSvg),
-  halfCourt: await loadImage(halfCourtPng),
+  allCount: await loadImage(allCountPng),
   red1: await loadImage(red1Svg),
   red2: await loadImage(red2Svg),
   red3: await loadImage(red3Svg),
@@ -73,6 +73,18 @@ for (let index = 1; index <= 11; index++) {
       x: firstPosition.x,
       y: firstPosition.y + add,
     };
+  }
+}
+
+function renderCourt(ctx: CanvasRenderingContext2D) {
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  if (window.innerWidth < window.innerHeight) {
+    // 縦
+    ctx.drawImage(images["allCount"], 0, 0, ctx.canvas.width, ctx.canvas.height);
+  } else {
+    // 横
+    ctx.font = "24px serif";
+    ctx.fillText("縦向きでご利用ください", 50, 50);
   }
 }
 
@@ -130,7 +142,7 @@ function jsonFileImport(file: File): Promise<{
   });
 }
 
-function HalfCourt() {
+function AllCourt() {
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const [render, setRender] = React.useState(false);
   const [drug, setDrug] = React.useState(false);
@@ -142,6 +154,18 @@ function HalfCourt() {
   const positions = React.useRef<{ [key: string]: Position }[]>([initialPosition]);
 
   useEffect(() => {
+    const handleOrientationChange = () => {
+      setRender(!render);
+    };
+
+    window.screen.orientation.addEventListener("change", handleOrientationChange);
+
+    return () => {
+      window.screen.orientation.removeEventListener("change", handleOrientationChange);
+    };
+  }, [render]);
+
+  useEffect(() => {
     if (!canvasRef.current) {
       throw new Error("canvas要素の取得に失敗しました");
     }
@@ -151,9 +175,7 @@ function HalfCourt() {
       throw new Error("context取得失敗");
     }
 
-    //描画前に既に描画済みのものを消してリセット
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    ctx.drawImage(images["halfCourt"], 0, 0, ctx.canvas.width, ctx.canvas.height);
+    renderCourt(ctx);
     if (newPosition.current) {
       for (const [key, value] of Object.entries(newPosition.current)) {
         ctx.drawImage(images[key], value.x - size / 2, value.y - size / 2, size, size);
@@ -290,11 +312,7 @@ function HalfCourt() {
           return;
         }
 
-        //描画前に既に描画済みのものを消してリセット
-        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-        ctx.fillStyle = "#f3b75f";
-        ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-        ctx.drawImage(images["halfCourt"], 0, 0, ctx.canvas.width, ctx.canvas.height);
+        renderCourt(ctx);
         for (const [key, value] of Object.entries(firstPosition)) {
           const nextValue = nextPosition[key];
           const diffX = (nextValue.x - value.x) / 100;
@@ -440,4 +458,4 @@ function HalfCourt() {
   );
 }
 
-export default HalfCourt;
+export default AllCourt;
