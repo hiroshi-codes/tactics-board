@@ -29,13 +29,13 @@ interface Position {
 
 const size = 40 as const;
 const canvasSize = {
-  width: window.innerWidth < 480 ? window.innerWidth : 480,
-  height: window.innerWidth < 480 ? 550 : window.innerHeight - 90,
+  width: window.innerWidth,
+  height: window.innerHeight - 90,
 } as const;
 
 const firstPosition = {
   x: size / 2 + 40,
-  y: window.innerWidth < 480 ? 480 : 600,
+  y: window.innerHeight - 200,
 };
 const images: {
   [key: string]: HTMLImageElement;
@@ -72,6 +72,18 @@ for (let index = 1; index <= 5; index++) {
     x: firstPosition.x + addX,
     y: firstPosition.y + size + 10,
   };
+}
+
+function renderCourt(ctx: CanvasRenderingContext2D) {
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  if (window.innerWidth < window.innerHeight) {
+    // 縦
+    ctx.drawImage(images["halfCourt"], 0, 0, ctx.canvas.width, ctx.canvas.width);
+  } else {
+    // 横
+    ctx.font = "24px serif";
+    ctx.fillText("縦向きでご利用ください", 50, 50);
+  }
 }
 
 function loadImage(src: string) {
@@ -140,6 +152,18 @@ function HalfCourt() {
   const positions = React.useRef<{ [key: string]: Position }[]>([initialPosition]);
 
   useEffect(() => {
+    const handleOrientationChange = () => {
+      setRender(!render);
+    };
+
+    window.screen.orientation.addEventListener("change", handleOrientationChange);
+
+    return () => {
+      window.screen.orientation.removeEventListener("change", handleOrientationChange);
+    };
+  }, [render]);
+
+  useEffect(() => {
     if (!canvasRef.current) {
       throw new Error("canvas要素の取得に失敗しました");
     }
@@ -149,9 +173,7 @@ function HalfCourt() {
       throw new Error("context取得失敗");
     }
 
-    //描画前に既に描画済みのものを消してリセット
-    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-    ctx.drawImage(images["halfCourt"], 0, 0, ctx.canvas.width, ctx.canvas.width);
+    renderCourt(ctx);
     if (newPosition.current) {
       for (const [key, value] of Object.entries(newPosition.current)) {
         ctx.drawImage(images[key], value.x - size / 2, value.y - size / 2, size, size);
@@ -288,11 +310,7 @@ function HalfCourt() {
           return;
         }
 
-        //描画前に既に描画済みのものを消してリセット
-        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-        ctx.fillStyle = "#f3b75f";
-        ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-        ctx.drawImage(images["halfCourt"], 0, 0, ctx.canvas.width, ctx.canvas.width);
+        renderCourt(ctx);
         for (const [key, value] of Object.entries(firstPosition)) {
           const nextValue = nextPosition[key];
           const diffX = (nextValue.x - value.x) / 100;
