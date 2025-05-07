@@ -31,6 +31,7 @@ export default defineConfig(({ mode }) => {
           start_url: base,
           scope: base,
           display: "standalone",
+          orientation: "portrait",
           icons: [
             {
               src: "pwa-64x64.png",
