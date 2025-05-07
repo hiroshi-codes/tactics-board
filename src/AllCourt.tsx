@@ -419,11 +419,11 @@ function AllCourt() {
       <div className="flex justify-center">
         <div>
           <div className="flex justify-between items-center p-2">
-            <Link to="/" className="flex items-center">
+            <Link to="/tactics-board/" className="flex items-center">
               <img src={appLogo} alt="tactics-board logo" width="35" height="35" />
               tactics board
             </Link>
-            <Link to="/half-court">HALF</Link>
+            <Link to="/tactics-board/half-court">HALF</Link>
             <div>
               <IconButton Icon={MdHelp} color="lime" buttonProps={{ onClick: () => setHelp(true), disabled: playing }} />
               <IconButton Icon={MdSave} color="lime" buttonProps={{ onClick: download, disabled: playing }} className="ml-2" />

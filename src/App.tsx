@@ -6,7 +6,7 @@ function App() {
   return (
     <div className="text-center">
       <div className="flex justify-center">
-        <Link to="half-court">
+        <Link to="/tactics-board/half-court">
           <img src={appLogo} alt="tactics-board logo" />
         </Link>
       </div>
